@@ -3,6 +3,7 @@
              (file-name-directory (or load-file-name
                                       (buffer-file-name (current-buffer)))))
 (require 'elnode)
+(require 'atom)
 
 (defun convert-github-time-to-internal-time (gh-time)
   (apply 'encode-time
