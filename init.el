@@ -35,11 +35,21 @@
     (loop while (re-search-forward "<td .*class=\"desc\">\\(.*?\\)</td>" nil t)
       collect (match-string 1))))
 
+(defun find-forked-repo (owner repo)
+  (let ((repo-url (concat "http://github.com/" owner "/" repo)))
+    (with-current-buffer (url-retrieve-synchronously repo-url)
+      (save-excursion
+        (goto-char (point-min))
+        (re-search-forward "<span class=\"text\">forked from <.*?>\\(.*?\\)</a>" nil t)
+        (match-string 1)))))
+
+
 
 
 (defun github-fetcher-handler (httpcon)
   (elnode-http-start httpcon "200" '("Content-type" . "application/atom+xml")
     `("Server" . ,(concat "GNU Emacs " emacs-version)))
+
   (let* ((user-mail-address "rolando_pereira@sapo.pt")
           (my-atom-feed (atom-create "New GitHub Emacs Lisp Repos" "http://github-elisp.herokuapp.com"))
           (repo-info (with-current-buffer (url-retrieve-synchronously "https://github.com/languages/Emacs%20Lisp/created")
@@ -47,11 +57,16 @@
                         for owner in (find-owners)
                         for date in (find-dates)
                         for descs in (find-descs)
-                        collect (list owner repo date descs)))))
+                        collect (list owner repo date descs
+                                  ;(find-forked-repo owner repo)
+                                  )))))
     (dolist (repo repo-info)
       (atom-add-text-entry my-atom-feed
-        (concat (first repo) ": " (second repo))
-        (concat "https://github.com/" (first repo) "/" (second repo))
+        ;; (if (fifth repo)
+        ;;   (concat (first repo) ": " (second repo) " (forked from " (fifth repo) ")")
+          (concat (first repo) ": " (second repo))
+        ;)
+        (concat "http://github.com/" (first repo) "/" (second repo))
         (fourth repo)
         (convert-github-time-to-internal-time (third repo))))
                                         ;(format-time-string  "%Y-%m-%dT%T%z")))
