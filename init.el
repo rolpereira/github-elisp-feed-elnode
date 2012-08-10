@@ -2,40 +2,50 @@
 (add-to-list 'load-path
              (file-name-directory (or load-file-name
                                       (buffer-file-name (current-buffer)))))
+
 (require 'elnode)
 (require 'atom)
 
+
 (defun convert-github-time-to-internal-time (gh-time)
+  "Convert a string of type \"DD MON HH:YY\" into the internal representation used by Emacs"
   (apply 'encode-time
     (multiple-value-bind (sec min hour day month) (parse-time-string gh-time)
       (let ((current-year (string-to-number (format-time-string "%Y"))))
         (list sec min hour day month current-year)))))
 
 (defun find-repos ()
+  "Return the name of the repositories found in the HTML file"
   (save-excursion
     (goto-char (point-min))
     (loop while (re-search-forward "<td class=\"title\">\n.*?\">\\(.*?\\)</a>" nil t)
       collect (match-string 1))))
 
 (defun find-owners ()
+  "Return the owners of the repositories found in the HTML file"
   (save-excursion
     (goto-char (point-min))
     (loop while (re-search-forward "<td class=\"owner\">\n.*?\">\\(.*?\\)</a>" nil t)
       collect (match-string 1))))
 
 (defun find-dates ()
+  "Return the creation dates of the repositories found in the HTML file"
   (save-excursion
     (goto-char (point-min))
     (loop while (re-search-forward "<td class=\"date\">\n *\\(.*?\\)\n" nil t)
       collect (match-string 1))))
 
 (defun find-descs ()
+  "Return the description of the repositories found in the HTML file"
   (save-excursion
     (goto-char (point-min))
     (loop while (re-search-forward "<td .*class=\"desc\">\\(.*?\\)</td>" nil t)
       collect (match-string 1))))
 
 (defun find-forked-repo (owner repo)
+  "Return the repository that was forked to create this
+
+If no repository was forked, then return NIL"
   (let ((repo-url (concat "http://github.com/" owner "/" repo)))
     (with-current-buffer (url-retrieve-synchronously repo-url)
       (save-excursion
