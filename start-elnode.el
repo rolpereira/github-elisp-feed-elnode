@@ -45,6 +45,22 @@
 (require 'string-utils)
 (require 'sgml-mode)
 
+(defvar personal-repositories-regexp '("dot[-_]?files?"
+                                        "dot[-_]?emacs\.?d?"
+                                        "^\.?emacs\.?d?$"
+                                        "emacs[-_]?config"
+                                        "emacs[-_]?settings")
+  "A list of regexps.
+
+If the name of a repository matches any of these regexps, then it
+is considered a personal repository and wont be shown in the atom
+feed if the client uses \"no-dotemacs\" in the path of the url.
+
+The name of the repository is passed through the `downcase'
+function before applying the regexp, so no uppercase character
+should appear on these regexps.")
+
+
 ;;; Functions used to extract the information found in "https://github.com/languages/Emacs%20Lisp/created"
 (defun find-html-structures ()
   (goto-char (point-min))
@@ -111,6 +127,35 @@
 
 
 ;;; Helper functions
+(defun no-forks-p (httpcon)
+  "Return T if client doesn't want the forked repositories on its atom feed"
+  (let ((keywords-in-path (split-string (elnode-http-pathinfo httpcon) "/" t)))
+    (member* "no-forks" keywords-in-path :test #'string=)))
+
+(defun remove-forks (repos-list)
+  "Return REPOS-LIST without the repositories that were forked from another repository"
+  (loop for repo in repos-list
+    when (null (fifth repo))
+    collect repo))
+
+(defun no-dotemacs-p (httpcon)
+  "Return T if client doesn't want the personal repositories (eg. \".emacs.d\") on its atom feed
+
+A personal repository is one whose name matches any regexp from `personal-repositories-regexp'."
+  (let ((keywords-in-path (split-string (elnode-http-pathinfo httpcon) "/" t)))
+    (member* "no-dotemacs" keywords-in-path :test #'string=)))
+
+
+
+(defun remove-dotemacs (repos-list)
+  "Return REPOS-LIST without the personal repositories (eg. \".emacs.d\")
+
+A personal repository is one whose name matches any regexp from `personal-repositories-regexp'."
+  (loop for repo in repos-list
+    unless (some (lambda (regexp)
+                   (string-match regexp (downcase (second repo))))
+             personal-repositories-regexp)
+    collect repo))
 
 ;;; Elnode handler
 (defun github-fetcher-handler (httpcon)
@@ -136,14 +181,21 @@
                         ;;                     (when show-information-regarding-forks
                         ;;                       (find-forked-repo owner repo))))
                         (kill-buffer)))))
+
+    ;; Remove the repositories the client isn't interested in
+    (when (no-forks-p httpcon)
+      (setq repo-info (remove-forks repo-info)))
+    (when (no-dotemacs-p httpcon)
+      (setq repo-info (remove-dotemacs repo-info)))
+
     (dolist (repo repo-info)
-      (atom-add-text-entry my-atom-feed
-                           (if (fifth repo)
-                               (concat (first repo) ": " (second repo) " (forked from " (fifth repo) ")")
-                             (concat (first repo) ": " (second repo)))
-                           (concat "http://github.com/" (first repo) "/" (second repo))
-                           (fourth repo)
-			   (atom-parse-time (third repo))))
+          (atom-add-text-entry my-atom-feed
+            (if (fifth repo)
+              (concat (first repo) ": " (second repo) " (forked from " (fifth repo) ")")
+              (concat (first repo) ": " (second repo)))
+            (concat "http://github.com/" (first repo) "/" (second repo))
+            (fourth repo)
+            (atom-parse-time (third repo))))
 
 
     (elnode-http-return httpcon
