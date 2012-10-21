@@ -45,19 +45,6 @@
 (require 'string-utils)
 (require 'sgml-mode)
 
-(defvar show-information-regarding-forks nil
-  "If T then add to the title of each feed the repository that was forked to create the new repository.
-
-Here's an example using a fork of the Melpa repo to show how this
-variable affects the title of the feeds:
-
-* Without fork information the title of the feed:
-  rolando2424: melpa
-
-* With fork information it would be:
-  rolando2424: melpa (forked from milkypostman/melpa)")
-
-
 ;;; Functions used to extract the information found in "https://github.com/languages/Emacs%20Lisp/created"
 (defun find-html-structures ()
   (goto-char (point-min))
@@ -124,13 +111,6 @@ variable affects the title of the feeds:
 
 
 ;;; Helper functions
-(defun convert-github-time-to-internal-time (gh-time)
-  "Convert a string of type \"DD MON HH:YY\" into the internal representation used by Emacs"
-  (let ((current-year (string-to-number (format-time-string "%Y"))))
-    (apply 'encode-time
-           (multiple-value-bind (sec min hour day month) (parse-time-string gh-time)
-                                (list sec min hour day month current-year)))))
-
 
 ;;; Elnode handler
 (defun github-fetcher-handler (httpcon)
