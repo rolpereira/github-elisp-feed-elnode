@@ -72,6 +72,7 @@ variable affects the title of the feeds:
 	finally return (reverse html-structures)))
 
 (defun find-repo (html-structure)
+  "Return, for every repository found in HTML-STRUCTURE, its namespaces"
   (with-temp-buffer
     (insert html-structure)
     (goto-char (point-min))
@@ -79,6 +80,7 @@ variable affects the title of the feeds:
     (match-string 1)))
   
 (defun find-owner (html-structure)
+  "Return, for every repository found in HTML-STRUCTURE, its owner"
   (with-temp-buffer
     (insert html-structure)
     (goto-char (point-min))
@@ -86,6 +88,7 @@ variable affects the title of the feeds:
     (match-string 1)))
 
 (defun find-updated-date (html-structure)
+  "Return, for every repository found in HTML-STRUCTURE, the date when it was last updated"
   (with-temp-buffer
     (insert html-structure)
     (goto-char (point-min))
@@ -93,6 +96,7 @@ variable affects the title of the feeds:
     (match-string 1)))
 
 (defun find-description (html-structure)
+  "Return, for every repository found in HTML-STRUCTURE, its description"
   (with-temp-buffer
     (insert html-structure)
     (goto-char (point-min))
@@ -107,6 +111,7 @@ variable affects the title of the feeds:
       (search-failed nil))))
 
 (defun find-forked-repo (html-structure)
+  "Return, for every repository found in HTML-STRUCTURE, the repository used to fork it or NIL if it wasn't forked"
   (with-temp-buffer
     (insert html-structure)
     (goto-char (point-min))
@@ -116,63 +121,6 @@ variable affects the title of the feeds:
 	  (re-search-forward "<p class=\"fork-flag\">.*?<a href=\"/\\(.*?\\)\"" nil)
 	  (match-string 1))
       (search-failed nil))))
-
-
-;; (defun find-repos ()
-;;   "Return the name of the repositories found in the current buffer"
-;;   (save-excursion
-;;     (goto-char (point-min))
-;;     (loop while (re-search-forward "<span class=\"mega-icon.*\n.*<a.*?>\\(.*?\\)</a>" nil t)
-;; 	  collect (match-string-no-properties 1))))
-
-;; (defun find-owners ()
-;;   "Return the owners of the repositories found in the current buffer"
-;;   (save-excursion
-;;     (goto-char (point-min))
-;;     (loop while (re-search-forward "<span class=\"mega-icon.*\n.*<a.*?\"/\\(.*?\\)/" nil t)
-;; 	  collect (match-string-no-properties 1))))
-
-;; (defun find-dates ()
-;;   "Return the creation dates of the repositories found in the current buffer"
-;;   (save-excursion
-;;     (goto-char (point-min))
-;;     (loop while (re-search-forward "datetime=\"\\(.*?\\)\"" nil t)
-;; 	  collect (match-string-no-properties 1))))
-
-;; (defun teste ()
-;;   (goto-char (point-min))
-;;   (let ((begin-point (point))
-;; 	end-point)
-;;     (re-search-forward "<li class=\"simple" nil t)
-;;     (setq end-point (point))
-;;     (narrow-to-region begin-point end-point)))
-
-
-
-
-
-
-;; (defun find-descs ()
-;;   "Return the description of the repositories found in the current buffer"
-;;   (save-excursion
-;;     (goto-char (point-min))
-;;     (loop while (re-search-forward "<td .*class=\"desc\">\\(.*?\\)</td>" nil t)
-;;           collect (match-string 1))))
-
-;; (defun find-forked-repo (owner repo)
-;;   "Check if the REPO created by OWNER was forked from another repo and return it.
-
-;; If no repository was forked to create REPO, then return NIL."
-;;   (let ((repo-url (concat "http://github.com/" owner "/" repo))
-;;          return-value)
-;;     (with-current-buffer (url-retrieve-synchronously repo-url)
-;;       (goto-char (point-min))
-;;       (when (re-search-forward "<span class=\"text\">forked from <.*?>\\(.*?\\)</a>" nil t)
-;;         (setq return-value (match-string 1)))
-;;       (kill-buffer))
-;;     return-value))
-    
-
 
 
 ;;; Helper functions
