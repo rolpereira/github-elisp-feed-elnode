@@ -1,5 +1,10 @@
 
-(To see this code in action, see http://github-elisp.herokuapp.com )
+*This code has been replaced by the code in the repo [github-elisp-feed-mojolicious](https://github.com/rolpereira/github-elisp-feed-mojolicious)*
+
+However you can still use this code as an example of using elnode with Heroku.
+
+-------------------------------------------------------------------------------
+
 
 Inspired by Zach's
 [feed for new Common Lisp repos](http://xach.livejournal.com/298220.html).
